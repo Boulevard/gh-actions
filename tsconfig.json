@@ -13,5 +13,6 @@
     "strict": true,
     "target": "es2018",
     "types": []
-  }
+  },
+  "exclude": ["test_src", "build", "node_modules", "jest.config.ts"]
 }
