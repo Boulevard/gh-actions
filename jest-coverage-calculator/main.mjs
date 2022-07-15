@@ -1,4 +1,5 @@
 import core from "@actions/core";
+
 const coverageJson = core.getInput("coverage", { required: true });
 const coverage = JSON.parse(coverageJson);
 const sumBy = (list, callback) => list.reduce((acc, item) => acc + callback(item), 0);
