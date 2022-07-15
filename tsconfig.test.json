@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "isolatedModules": false,
+    "types": ["@testing-library/jest-dom", "jest", "node"]
+  },
+  "extends": "./tsconfig.json",
+  "include": ["test_src/**/*.test.js*"]
+}
