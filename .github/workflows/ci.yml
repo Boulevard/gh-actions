@@ -1,0 +1,39 @@
+name: CI
+on:
+  workflow_call:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+      - name: Build app
+        run: yarn build
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+      - name: Get the url of the current test run
+        id: get-run-url
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const result = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+
+            const job = result.data.jobs.find(job => job.name.includes(context.job));
+            const step = job.steps.find(step => step.name === "Run tests");
+
+            return `${job.html_url}#step:${step.number}:1`;
+      - name: Run tests
+        uses: ./jest
+        with:
+          run-url: ${{ fromJSON(steps.get-run-url.outputs.result) }}

@@ -1,0 +1,14 @@
+name: Install Dependencies
+description: Install all dependencies.
+runs:
+  using: "composite"
+  steps:
+    - name: Hydrate node modules cache
+      uses: actions/cache@v2
+      with:
+        path: "**/node_modules"
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    - name: Install node modules
+      run: |
+        yarn install --frozen-lockfile
+      shell: bash
