@@ -1,0 +1,135 @@
+name: Jest
+description: Run Jest tests and collect coverage data.
+inputs:
+  base-sha:
+    default: |-
+      ${{
+        github.event_name == 'pull_request'
+          && github.event.pull_request.base.sha
+          || ''
+      }}
+    description: If provided then coverage results will be compared to the
+      results from the merge base.
+    required: false
+  head-sha:
+    default: |-
+      ${{
+        github.event_name == 'pull_request'
+          && github.event.pull_request.head.sha
+          || github.sha
+      }}
+    description: The sha of the current commit.
+    required: true
+  run-url:
+    description: A link to the current test run.
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Run Jest tests
+      continue-on-error: true
+      id: test
+      run: yarn test --ci --collectCoverage --coverageDirectory "../coverage_${{ inputs.head-sha }}"
+      shell: bash
+    - name: Cache coverage results
+      uses: actions/cache@v3
+      with:
+        path: coverage_${{ inputs.head-sha }}
+        key: ${{ runner.os }}-jest-coverage-${{ inputs.head-sha }}
+    - name: Restore previous coverage results
+      id: previous-results-cache
+      if: inputs.base-sha
+      uses: actions/cache@v3
+      with:
+        path: coverage_${{ inputs.base-sha }}
+        key: ${{ runner.os }}-jest-coverage-${{ inputs.base-sha }}
+    - name: Read new Jest coverage output
+      id: new-coverage
+      run: |
+        json=$(cat coverage_${{ inputs.head-sha }}/coverage-summary.json)
+        echo "::set-output name=json::${json//$'\n'/'%0A'}"
+      shell: bash
+    - name: Read old Jest coverage output
+      continue-on-error: true
+      if: steps.previous-results-cache.outputs.cache-hit == 'true'
+      id: old-coverage
+      run: |
+        json=$(cat coverage_${{ inputs.base-sha }}/coverage-summary.json)
+        echo "::set-output name=json::${json//$'\n'/'%0A'}"
+      shell: bash
+    - name: Calculate new percent coverage
+      id: new-percent-coverage
+      uses: ./jest-coverage-calculator
+      with:
+        coverage: ${{ steps.new-coverage.outputs.json }}
+    - name: Calculate old percent coverage
+      id: old-percent-coverage
+      if: steps.old-coverage.outputs.json
+      uses: ./jest-coverage-calculator
+      with:
+        coverage: ${{ steps.old-coverage.outputs.json }}
+    - name: Generate markdown table
+      env:
+        NEW_COVERAGE: ${{ steps.new-coverage.outputs.json }}
+        NEW_COVERAGE_MEAN: ${{ steps.new-percent-coverage.outputs.percent }}
+        OLD_COVERAGE: ${{ steps.old-coverage.outputs.json || 'null' }}
+        OLD_COVERAGE_MEAN: ${{ steps.old-percent-coverage.outputs.percent || 'null' }}
+      id: markdown-table
+      uses: actions/github-script@v6
+      with:
+        result-encoding: string
+        script: |
+          const newCoverage = JSON.parse(process.env.NEW_COVERAGE);
+          const newCoverageMean = JSON.parse(process.env.NEW_COVERAGE_MEAN);
+          const oldCoverage = JSON.parse(process.env.OLD_COVERAGE);
+          const oldCoverageMean = JSON.parse(process.env.OLD_COVERAGE_MEAN);
+
+          const rows = [
+            ["Type", "Percent"],
+            [":---------", "------:"],
+            ["Branches", `${newCoverage.total.branches.pct.toFixed(2)}%`],
+            ["Functions", `${newCoverage.total.functions.pct.toFixed(2)}%`],
+            ["Lines", `${newCoverage.total.lines.pct.toFixed(2)}%`],
+            ["Statements", `${newCoverage.total.statements.pct.toFixed(2)}%`],
+            ["**Mean**", `**${newCoverageMean}%**`],
+          ];
+
+          if (oldCoverage) {
+            const diff = {
+              branches: newCoverage.total.branches.pct - oldCoverage.total.branches.pct,
+              functions: newCoverage.total.functions.pct - oldCoverage.total.functions.pct,
+              lines: newCoverage.total.lines.pct - oldCoverage.total.lines.pct,
+              statements: newCoverage.total.statements.pct - oldCoverage.total.statements.pct,
+              mean: parseFloat(newCoverageMean) - parseFloat(oldCoverageMean)
+            };
+
+            const renderDiff = (diff) =>
+              `${diff.toFixed(2)}% &nbsp; ${diff < 0 ? "🔴" : "🟢"}`;
+
+            rows[0].push("diff");
+            rows[1].push("---:");
+            rows[2].push(renderDiff(diff.branches));
+            rows[3].push(renderDiff(diff.functions));
+            rows[4].push(renderDiff(diff.lines));
+            rows[5].push(renderDiff(diff.statements));
+            rows[6].push(`**${renderDiff(diff.mean)}**`);
+          }
+
+          return rows.map(row => `| ${row.join(" | ")} |`).join("\n");
+    - name: Create coverage results comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: Jest Coverage Results
+        message: |-
+          ### Jest Coverage
+
+          ${{ steps.test.outcome == 'success' && '🟢 Passing' || '🔴 Failing' }}
+
+          ${{ steps.markdown-table.outputs.result }}
+
+          [View test results](${{ inputs.run-url }})
+    - name: Fail job
+      if: steps.test.outcome != 'success'
+      uses: actions/github-script@v3
+      with:
+        script: core.setFailed("Tests are failing.");
