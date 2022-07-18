@@ -4,18 +4,19 @@
   "description": "Custom github actions",
   "repository": "https://github.com/boulevard/gh-actions",
   "scripts": {
-    "build": "tsc",
+    "build": "ncc build lib/jest-coverage-calculator/main.ts -o build",
     "test": "jest"
   },
   "dependencies": {
-    "@actions/core": "^1.9.0"
+    "@actions/core": "^1.9.0",
+    "@vercel/ncc": "^0.34.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.4",
+    "jest": "^28.1.3",
     "jest-environment-jsdom": "^28.1.3",
     "ts-jest": "^28.0.6",
     "ts-node": "^10.9.1",
-    "typescript": "^4.7.4",
-    "jest": "^28.1.3"
+    "typescript": "^4.7.4"
   }
 }
