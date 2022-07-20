@@ -25,7 +25,6 @@ inputs:
     required: true
   action-branch:
     description: The branch to use when running jest-coverage-calculator
-    default: |- ${{ github.repository == 'Boulevard/gh-actions' && 'Boulevard/gh-actions@${{ github.ref_name }}' || 'Boulevard/gh-actions@main' }}
     required: true
 runs:
   using: "composite"
