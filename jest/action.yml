@@ -25,6 +25,7 @@ inputs:
     required: true
   action-branch:
     description: The branch to use when running jest-coverage-calculator
+    default: |- ${{ github.repository == 'Boulevard/gh-actions' && 'Boulevard/gh-actions@${{ github.ref_name }}' || 'Boulevard/gh-actions@main' }}
     required: true
 runs:
   using: "composite"
@@ -60,16 +61,9 @@ runs:
         json=$(cat coverage_${{ inputs.base-sha }}/coverage-summary.json)
         echo "::set-output name=json::${json//$'\n'/'%0A'}"
       shell: bash
-    - name: Calculate new percent coverage (external repo)
+    - name: Calculate new percent coverage
       id: new-percent-coverage
-      uses: Boulevard/gh-actions/jest-coverage-calculator@main
-      if: ${{ github.repository != 'Boulevard/gh-actions' }}
-      with:
-        coverage: ${{ steps.new-coverage.outputs.json }}
-    - name: Calculate new percent coverage (gh-actions repo)
-      id: new-percent-coverage
-      uses: ./jest-coverage-calculator
-      if: ${{ github.repository == 'Boulevard/gh-actions' }}
+      uses: Boulevard/gh-actions/jest-coverage-calculator@${{ github.respository == 'Boulevard/gh-actions' && github.ref_name || 'main' }}
       with:
         coverage: ${{ steps.new-coverage.outputs.json }}
     - name: Calculate old percent coverage
