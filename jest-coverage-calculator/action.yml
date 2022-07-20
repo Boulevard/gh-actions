@@ -9,4 +9,4 @@ outputs:
     description: The mean percent coverage.
 runs:
   using: node16
-  main: main.mjs
+  main: main.js
