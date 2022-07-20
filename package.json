@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "yarn clean",
     "build": "esbuild lib/jest-coverage-calculator/main.ts --bundle --outdir=build --platform=node",
-    "postbuild": "cp build/main.js jest-coverage-calculator/main.mjs",
+    "postbuild": "cp build/main.js jest-coverage-calculator/main.js",
     "clean": "rm -rf build",
     "test": "jest"
   },
