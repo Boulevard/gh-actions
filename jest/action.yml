@@ -60,9 +60,16 @@ runs:
         json=$(cat coverage_${{ inputs.base-sha }}/coverage-summary.json)
         echo "::set-output name=json::${json//$'\n'/'%0A'}"
       shell: bash
-    - name: Calculate new percent coverage
+    - name: Calculate new percent coverage (external repo)
       id: new-percent-coverage
-      uses: Boulevard/gh-actions/jest-coverage-calculator@${{ inputs.action-branch }}
+      uses: Boulevard/gh-actions/jest-coverage-calculator@main
+      if: ${{ github.repository != 'Boulevard/gh-actions' }}
+      with:
+        coverage: ${{ steps.new-coverage.outputs.json }}
+    - name: Calculate new percent coverage (gh-actions repo)
+      id: new-percent-coverage
+      uses: ./jest-coverage-calculator
+      if: ${{ github.repository == 'Boulevard/gh-actions' }}
       with:
         coverage: ${{ steps.new-coverage.outputs.json }}
     - name: Calculate old percent coverage
