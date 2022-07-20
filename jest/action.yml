@@ -59,13 +59,13 @@ runs:
       shell: bash
     - name: Calculate new percent coverage
       id: new-percent-coverage
-      uses: Boulevard/gh-actions/jest-coverage-calculator@main
+      uses: Boulevard/gh-actions/jest-coverage-calculator@use-ts-compiler
       with:
         coverage: ${{ steps.new-coverage.outputs.json }}
     - name: Calculate old percent coverage
       id: old-percent-coverage
       if: steps.old-coverage.outputs.json
-      uses: Boulevard/gh-actions/jest-coverage-calculator@main
+      uses: Boulevard/gh-actions/jest-coverage-calculator@use-ts-compiler
       with:
         coverage: ${{ steps.old-coverage.outputs.json }}
     - name: Generate markdown table
