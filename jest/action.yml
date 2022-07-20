@@ -65,7 +65,7 @@ runs:
     - name: Calculate old percent coverage
       id: old-percent-coverage
       if: steps.old-coverage.outputs.json
-      uses: Boulevard/gh-actions/jest-coverage-calculator@${{ inputs.action-branch }}
+      uses: Boulevard/gh-actions/jest-coverage-calculator@main
       with:
         coverage: ${{ steps.old-coverage.outputs.json }}
     - name: Generate markdown table
