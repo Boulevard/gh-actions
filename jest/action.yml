@@ -23,6 +23,9 @@ inputs:
   run-url:
     description: A link to the current test run.
     required: true
+  action-branch:
+    description: The branch to use when running jest-coverage-calculator
+    required: true
 runs:
   using: "composite"
   steps:
@@ -59,13 +62,13 @@ runs:
       shell: bash
     - name: Calculate new percent coverage
       id: new-percent-coverage
-      uses: Boulevard/gh-actions/jest-coverage-calculator@main
+      uses: Boulevard/gh-actions/jest-coverage-calculator@${{ inputs.action-branch }}
       with:
         coverage: ${{ steps.new-coverage.outputs.json }}
     - name: Calculate old percent coverage
       id: old-percent-coverage
       if: steps.old-coverage.outputs.json
-      uses: Boulevard/gh-actions/jest-coverage-calculator@main
+      uses: Boulevard/gh-actions/jest-coverage-calculator@${{ inputs.action-branch }}
       with:
         coverage: ${{ steps.old-coverage.outputs.json }}
     - name: Generate markdown table

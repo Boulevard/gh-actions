@@ -37,3 +37,4 @@ jobs:
         uses: ./jest
         with:
           run-url: ${{ fromJSON(steps.get-run-url.outputs.result) }}
+          action-branch: ${{ github.repository == 'Boulevard/gh-actions' && github.ref_name || 'main' }}
