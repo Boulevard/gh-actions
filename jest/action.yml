@@ -62,7 +62,7 @@ runs:
       shell: bash
     - name: Calculate new percent coverage
       id: new-percent-coverage
-      uses: Boulevard/gh-actions/jest-coverage-calculator@${{ github.respository == 'Boulevard/gh-actions' && github.ref_name || 'main' }}
+      uses: "Boulevard/gh-actions/jest-coverage-calculator@${{ inputs.action-branch }}"
       with:
         coverage: ${{ steps.new-coverage.outputs.json }}
     - name: Calculate old percent coverage
