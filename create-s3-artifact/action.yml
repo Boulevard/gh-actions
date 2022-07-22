@@ -1,0 +1,41 @@
+name: Create S3 Artifact
+description: Upload an artifact to S3.
+inputs:
+  artifact:
+    description: The raw artifact contents.
+    required: false
+  aws-access-key-id:
+    description: AWS access key ID.
+    required: false
+  aws-secret-access-key:
+    description: AWS secret access key.
+    required: false
+  cache-control:
+    description: HTTP cache control directive for the S3 object.
+    required: false
+  mandatory:
+    default: "false"
+    description: Fail if the contents of the artifact are empty.
+    required: false
+  path:
+    description: Alternatively provide a filepath. The contents of the file will
+      be used to create the artifact. If both artifact and path are set then
+      artifact will take precedence.
+    required: false
+  public:
+    default: "false"
+    description: Make this artifact public.
+    required: false
+  s3-bucket-name:
+    description: The name of the S3 bucket.
+    required: true
+  s3-object-key:
+    description: The object key used to store the file in S3.
+    required: true
+outputs:
+  success:
+    description: The value will be 'true' if the operation succeeded, otherwise
+      'false'.
+runs:
+  using: node16
+  main: main.js
