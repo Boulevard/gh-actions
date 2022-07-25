@@ -4,14 +4,20 @@
   "description": "Custom github actions",
   "repository": "https://github.com/boulevard/gh-actions",
   "scripts": {
+    "build-jest-coverage-calculator": "esbuild lib/jest-coverage-calculator/main.ts --sourcemap --bundle --outdir=build/jest-coverage-calculator --platform=node",
+    "build-create-s3-artifact": "esbuild lib/create-s3-artifact/main.mjs --sourcemap --bundle --outdir=build/create-s3-artifact --platform=node",
     "prebuild": "yarn clean",
-    "build": "esbuild lib/jest-coverage-calculator/main.ts --bundle --outdir=build --platform=node",
-    "postbuild": "cp build/main.js jest-coverage-calculator/main.js",
+    "build": "yarn build-jest-coverage-calculator && yarn build-create-s3-artifact",
+    "postbuild-jest-coverage-calculator": "cp build/jest-coverage-calculator/main.js jest-coverage-calculator/main.js",
+    "postbuild-create-s3-artifact": "cp build/create-s3-artifact/main.js create-s3-artifact/main.js",
+    "postbuild": "yarn postbuild-jest-coverage-calculator && yarn postbuild-create-s3-artifact",
     "clean": "rm -rf build",
     "test": "jest"
   },
   "dependencies": {
-    "@actions/core": "^1.9.0"
+    "@actions/core": "^1.9.0",
+    "@aws-sdk/client-s3": "^3.32.0",
+    "mime-types": "^2.1.35"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.4",
